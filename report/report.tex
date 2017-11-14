@@ -1,0 +1,100 @@
+\documentclass{article}
+\setcounter{tocdepth}{3}
+\setcounter{secnumdepth}{3}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{titlesec}
+\usepackage{subfig}
+\usepackage{todonotes}
+
+\begin{document}
+
+\title{WASP RL racing}
+\author{
+	First Author\\
+	Department\\
+	school\\
+	email@edu
+	\and
+	Second Author\\
+	Department\\
+	school\\
+	email@edu
+	\and
+	Third Author\\
+	Department\\
+	school\\
+	email@edu
+	\and
+	Fourth Author\\
+	Department\\
+	school\\
+	email@edu
+}
+
+\maketitle
+\thispagestyle{empty}
+\includegraphics[width=12cm]{img/torcs.png} % also works with logo.pdf
+\clearpage
+\tableofcontents
+\clearpage
+\section{Introduction}
+\setcounter{page}{1}
+
+\section{Background}
+
+\subsection{Markov Decision Process}
+
+\subsection{Reinforcement Learning}
+
+\subsection{Hierarchical Reinforcement Learning}
+
+Hierarchical Reinforcement Learning (HRL) differs from traditional RL in a way that the model that is being learned is a semi-MDP instead of a MDP. Here we not only learn a policy $\pi_{a,g}(s) \rightarrow a$ but also a policy $\pi_g(s) \rightarrow g$, that gives us a \textit{goal}. Initially we will assume that the $\pi_{a,g}$ policy is infact a PID-controller and what we actually want to learn is the $\pi_{g}$ policy.
+
+\subsubsection{Goals}
+
+A goal is simply a higher level action, such as \textit{overtake}, \textit{follow}, \textit{merge} in the AD context. Th
+
+
+
+\section{Setting}
+We are dealing with two notably different settings. In one we learn a policy $\pi$ that maps states $s \in \mathcal{S}$ to actions $a \in \mathcal{A}$. That is, we are looking for a (stochastic/deterministic?) function $\{\pi,\mu\}(s) \rightarrow a$, or, in other words we want $p(a|s)$.
+
+In the standard RL setting our action-space is merely the steering angle $\theta \in [-\pi,\pi]$, the acceleration $x_a \in [0,1]$ and the deceleration $x_d \in [0,1]$.
+
+\subsection{Termination conditions}
+
+We also have to take in mind the conditions that lead to the end of an episode. At the end of the episode we collect the rewards attained and update our models. However, if we do not have well defined termination conditions we might get stuck in simulation.
+
+\subsection{RL setting (Maybe not needed?)}
+
+\subsection{HRL setting}
+
+\subsubsection{Reward function}
+
+We can think of two kinds of rewards, one that is intristic and shown every timestep. That is,  
+\[
+r_t = V_x \cos(\theta) - V_x\sin(\theta)-V_x|trackPos|
+\]
+
+But we also have another reward that we denote as the $\textit{terminal}$ reward,
+
+\[
+R_t = -T
+\]
+\subsubsection{Decision maker}
+We assume a $\epsilon-$greedy decision maker, with random exploration parameter $\epsilon$.
+
+\subsubsection{Action-space}
+Our action-space $\mathcal{A}$ initially consists of three actions, namely, $\textit{left}, \textit{center}, \textit{right}$. These actions corresepond to the position in the track that we want to follow. The agent 
+
+\subsubsection{State-space}
+
+
+\section{Results}
+
+\section{Conclusion}
+
+\end{document}
