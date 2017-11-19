@@ -21,7 +21,7 @@ class TorcsEnv:
         self.vision = vision
         self.throttle = throttle
         self.gear_change = gear_change
-
+        self.acc = 0
         self.initial_run = True
 
         ##print("launch torcs")
@@ -74,14 +74,12 @@ class TorcsEnv:
 
         #  Simple Autnmatic Throttle Control by Snakeoil
         if self.throttle is False:
-            target_speed = self.default_speed
+            target_speed = 1000
             if client.S.d['speedX'] < target_speed - (client.R.d['steer']*50):
                 client.R.d['accel'] += .01
             else:
                 client.R.d['accel'] -= .01
 
-            if client.R.d['accel'] > 0.2:
-                client.R.d['accel'] = 0.2
 
             if client.S.d['speedX'] < 10:
                 client.R.d['accel'] += 1/(client.S.d['speedX']+.1)
@@ -100,17 +98,16 @@ class TorcsEnv:
         else:
             #  Automatic Gear Change by Snakeoil is possible
             action_torcs['gear'] = 1
-            if self.throttle:
-                if client.S.d['speedX'] > 50:
-                    action_torcs['gear'] = 2
-                if client.S.d['speedX'] > 80:
-                    action_torcs['gear'] = 3
-                if client.S.d['speedX'] > 110:
-                    action_torcs['gear'] = 4
-                if client.S.d['speedX'] > 140:
-                    action_torcs['gear'] = 5
-                if client.S.d['speedX'] > 170:
-                    action_torcs['gear'] = 6
+            if client.S.d['speedX'] > 50:
+                action_torcs['gear'] = 2
+            if client.S.d['speedX'] > 80:
+                action_torcs['gear'] = 3
+            if client.S.d['speedX'] > 110:
+                action_torcs['gear'] = 4
+            if client.S.d['speedX'] > 140:
+                action_torcs['gear'] = 5
+            if client.S.d['speedX'] > 170:
+                action_torcs['gear'] = 6
         # Save the privious full-obs from torcs for the reward calculation
         obs_pre = copy.deepcopy(client.S.d)
 
@@ -143,10 +140,10 @@ class TorcsEnv:
 
         # Termination judgement #########################
         episode_terminate = False
-        if (abs(track.any()) > 1 or abs(trackPos) > 1):  # Episode is terminated if the car is out of track
-           reward = -200
-           episode_terminate = True
-           client.R.d['meta'] = True
+        # if (abs(track.any()) > 1 or abs(trackPos) > 1):  # Episode is terminated if the car is out of track
+        #    reward = -200
+        #    episode_terminate = True
+        #    client.R.d['meta'] = True
 
         #if self.terminal_judge_start < self.time_step: # Episode terminates if the progress of agent is small
         #    if progress < self.termination_limit_progress:
@@ -217,24 +214,17 @@ class TorcsEnv:
     def agent_to_torcs(self, u):
 
         # Steer To Corner
+        delta = 0
+        if (u == 1) :
+          delta = -0.5
+        elif (u == 3):
+          delta = 0.5
+
         steering = self.observation.angle * 10 / PI
-        steering -= self.observation.trackPos * .10
-    
-          
+        steering -= (self.observation.trackPos-delta) * .10
 
         torcs_action = {'steer': steering}
 
-        if self.throttle is True:  # throttle action is enabled
-
-            if u[1] > 0 :
-                torcs_action.update({'accel': u[1]})
-                torcs_action.update({'brake': 0})
-            else :
-                torcs_action.update({'accel': 0})
-                torcs_action.update({'brake': -u[1]})
-
-        if self.gear_change is True: # gear change action is enabled
-            torcs_action.update({'gear': int(u[3])})
 
         return torcs_action
 
@@ -262,10 +252,10 @@ class TorcsEnv:
                      'wheelSpinVel']
             Observation = col.namedtuple('Observaion', names)
             return Observation(focus=np.array(raw_obs['focus'], dtype=np.float32)/200.,
-                               speedX=np.array(raw_obs['speedX'], dtype=np.float32)/300.0,
+                               speedX=np.array(raw_obs['speedX'], dtype=np.float32)/1.0,
                                speedY=np.array(raw_obs['speedY'], dtype=np.float32)/300.0,
                                speedZ=np.array(raw_obs['speedZ'], dtype=np.float32)/300.0,
-                               angle=np.array(raw_obs['angle'], dtype=np.float32)/3.1416,
+                               angle=np.array(raw_obs['angle'], dtype=np.float32) / PI,
                                damage=np.array(raw_obs['damage'], dtype=np.float32),
                                opponents=np.array(raw_obs['opponents'], dtype=np.float32)/200.,
                                rpm=np.array(raw_obs['rpm'], dtype=np.float32)/10000,

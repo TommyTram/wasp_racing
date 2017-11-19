@@ -16,7 +16,7 @@ import timeit
 
 def playGame(train_indicator=1):    #1 means Train, 0 means simply Run
     
-    max_steps = 100
+    max_steps = 10000
     reward = 0
     done = False
     step = 0
@@ -26,7 +26,7 @@ def playGame(train_indicator=1):    #1 means Train, 0 means simply Run
     nEpisodes = 100
     
     # Generate a Torcs environment
-    env = TorcsEnv(vision=False, throttle=True,gear_change=False)
+    env = TorcsEnv(vision=False, throttle=False,gear_change=False)
 
     print("TORCS Experiment Start.")
     for i in range(nEpisodes):
@@ -43,7 +43,7 @@ def playGame(train_indicator=1):    #1 means Train, 0 means simply Run
         total_reward = 0.
         for j in range(max_steps):
             
-            action = [0,1]
+            action = 1
             
             
 
