@@ -75,24 +75,36 @@ class TorcsEnv:
         # Steering
         action_torcs['steer'] = this_action['steer']  # in [-1, 1]
 
-        #  Simple Autnmatic Throttle Control by Snakeoil
-        if self.throttle is False:
-            target_speed = 1000
-            if client.S.d['speedX'] < target_speed - (client.R.d['steer'] * 50):
-                client.R.d['accel'] += .01
-            else:
-                client.R.d['accel'] -= .01
+#         #  Simple Autnmatic Throttle Control by Snakeoil
+#         if self.throttle is False:
+#             target_speed = 1000
+#             if client.S.d['speedX'] < target_speed - (client.R.d['steer'] * 50):
+#                 client.R.d['accel'] += .01
+#             else:
+#                 client.R.d['accel'] -= .01
+# 
+#             if client.S.d['speedX'] < 10:
+#                 client.R.d['accel'] += 1 / (client.S.d['speedX'] + .1)
+# 
+#             # Traction Control System
+#             if ((client.S.d['wheelSpinVel'][2] + client.S.d['wheelSpinVel'][3]) -
+#                     (client.S.d['wheelSpinVel'][0] + client.S.d['wheelSpinVel'][1]) > 5):
+#                 action_torcs['accel'] -= .2
+#         else:
+#             action_torcs['accel'] = this_action['accel']
+#             action_torcs['brake'] = this_action['brake']
 
-            if client.S.d['speedX'] < 10:
-                client.R.d['accel'] += 1 / (client.S.d['speedX'] + .1)
-
-            # Traction Control System
-            if ((client.S.d['wheelSpinVel'][2] + client.S.d['wheelSpinVel'][3]) -
-                    (client.S.d['wheelSpinVel'][0] + client.S.d['wheelSpinVel'][1]) > 5):
-                action_torcs['accel'] -= .2
+        setSpeed = 90
+        pAcc = 0.1
+        acc = pAcc * (setSpeed - self.observation.speedX)
+        if acc > 0:
+            throttle = acc
+            brake = 0
         else:
-            action_torcs['accel'] = this_action['accel']
-            action_torcs['brake'] = this_action['brake']
+            throttle = 0
+            brake = acc
+        action_torcs['accel'] = throttle
+        action_torcs['brake'] = brake
 
         #  Automatic Gear Change by Snakeoil
         if self.gear_change is True:
@@ -218,14 +230,20 @@ class TorcsEnv:
         # Steer To Corner
         delta = 0
         if (u == 0):
-            delta = -0.5
+            delta = -0.8
         elif (u == 2):
-            delta = 0.5
+            delta = 0.8
+        
+        lateralSetPoint = delta
+        pLateralOffset = -1
+        pAngleOffset = 3
+        steeringAngle = pLateralOffset * (self.observation.trackPos + lateralSetPoint) + pAngleOffset * self.observation.angle
+        torcs_action = {'steer': steeringAngle}
 
-        steering = self.observation.angle * 10 / PI
-        steering -= (self.observation.trackPos - delta) * .10
-
-        torcs_action = {'steer': steering}
+        #Ivo's old code        
+        #steering = self.observation.angle * 10 / PI
+        #steering -= (self.observation.trackPos - delta) * .10
+        #torcs_action = {'steer': steering}
 
         return torcs_action
 
