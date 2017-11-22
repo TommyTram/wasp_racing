@@ -36,6 +36,7 @@ class TorcsEnv:
             os.system('torcs -nofuel -nolaptime &')
         time.sleep(0.5)
         os.system('sh autostart.sh')
+        os.system('sh incTime.sh')
         time.sleep(0.5)
 
         """
@@ -194,6 +195,7 @@ class TorcsEnv:
                 self.reset_torcs()
                 print("### TORCS is RELAUNCHED ###")
 
+        os.system('sh incTime.sh')
         # Modify here if you use multiple tracks in the environment
         self.client = snakeoil3.Client(p=3101, vision=self.vision)  # Open new UDP in vtorcs
         self.client.MAX_STEPS = np.inf
