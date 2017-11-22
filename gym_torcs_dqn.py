@@ -147,6 +147,7 @@ class TorcsEnv:
 
         progress = sp * np.cos(obs['angle']) - np.abs(sp *
                                                       np.sin(obs['angle'])) - sp * np.abs(obs['trackPos'])
+	progress = progress / 100 # scaling rewards to about -1,1
         reward = progress
 	#reward = -obs['curLapTime']
 	#reward = obs['distRaced']
