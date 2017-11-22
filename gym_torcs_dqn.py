@@ -148,10 +148,10 @@ class TorcsEnv:
 
         progress = sp * np.cos(obs['angle']) - np.abs(sp *
                                                       np.sin(obs['angle'])) - sp * np.abs(obs['trackPos'])
-	progress = progress / 100 # scaling rewards to about -1,1
+        progress = progress / 100 # scaling rewards to about -1,1
         reward = progress
-	#reward = -obs['curLapTime']
-	#reward = obs['distRaced']
+    #reward = -obs['curLapTime']
+    #reward = obs['distRaced']
 
         # collision detection
         if obs['damage'] - obs_pre['damage'] > 0:
@@ -170,7 +170,7 @@ class TorcsEnv:
         #        episode_terminate = True
         #        client.R.d['meta'] = True
 
-        if np.cos(obs['angle']) < 0:  # Episode is terminated if the agent runs backward
+        if np.cos(obs['angle']) < 0 or np.abs(obs['trackPos']) > 1.2:  # Episode is terminated if the agent runs backward
             episode_terminate = True
             client.R.d['meta'] = True
 
