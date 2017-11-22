@@ -62,8 +62,8 @@ class Brain:
 
         return model
 
-    def train(self, x, y, epochs=1, verbose=0):
-        self.model.fit(x, y, batch_size=64, epochs=epochs, verbose=verbose)
+    def train(self, x, y, nb_epoch=1, verbose=0):
+        self.model.fit(x, y, batch_size=64, nb_epoch=nb_epoch, verbose=verbose)
 
     def predict(self, s, target=False):
         if target:
@@ -98,7 +98,7 @@ class Memory:   # stored as ( s, a, r, s_ )
         return len(self.samples) >= self.capacity
 
 #-------------------- AGENT ---------------------------
-MEMORY_CAPACITY = 10
+MEMORY_CAPACITY = 100000
 BATCH_SIZE = 64
 
 GAMMA = 0.99
@@ -224,7 +224,6 @@ class Environment:
             
             s_ = numpy.hstack((ob_.angle, ob_.track, ob_.trackPos, ob_.speedX,
                                   ob_.speedY, ob_.speedZ, ob_.wheelSpinVel / 100.0, ob_.rpm))
-            s_ = s_.ravel()
             if term == 1:
                 done = True
             else:
