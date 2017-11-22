@@ -50,6 +50,8 @@ class Brain:
 
         #model.add(Dense(units=64, activation='relu', input_dim=stateCnt))
         #model.add(Dense(units=actionCnt, activation='linear'))
+        model.add(Dense(512, input_dim=stateCnt))
+        model.add(Activation('relu'))
         model.add(Dense(64, input_dim=stateCnt))
         model.add(Activation('relu'))
         model.add(Dense(actionCnt))
@@ -96,7 +98,7 @@ class Memory:   # stored as ( s, a, r, s_ )
         return len(self.samples) >= self.capacity
 
 #-------------------- AGENT ---------------------------
-MEMORY_CAPACITY = 100000
+MEMORY_CAPACITY = 10
 BATCH_SIZE = 64
 
 GAMMA = 0.99
@@ -132,7 +134,13 @@ class Agent:
 
         # debug the Q function in poin S
         if self.steps % 100 == 0:
-            S = numpy.array([-0.01335408, -0.04600273, -0.00677248, 0.01517507])
+            S = numpy.array([-0.76404908, -0.18806157, -0.07364678, -0.98308269,  0.46421371,
+                             -0.12786118,  0.35635856, -0.58340303,  0.13679167, -0.22210082,
+                             0.40436726, -0.53746676, -0.55901542,  0.48374101, -0.34700899,
+                             0.1506552 , -0.07217786,  0.8702839 ,  0.40087611,  0.86132241,
+                             -0.53149064,  0.93351024, -0.09431621,  0.94650319,  0.43374405,
+                             0.79313524, -0.66503553, -0.17781279, -0.70930231])
+
             pred = agent.brain.predictOne(S)
             print(pred[0])
             sys.stdout.flush()
@@ -193,17 +201,34 @@ class Environment:
         ##self.problem = problem
         ##self.env = gym.make(problem)
         self.env = TorcsEnv(vision=False, throttle=False, gear_change=False)
+        self.episodes = 0
+        self.steps = 0
 
     def run(self, agent):
-        s = self.env.reset()
+        self.episodes += 1
+        if numpy.mod(self.episodes,3) == 0:
+            ob = self.env.reset(relaunch=True)
+        else:
+            ob = self.env.reset()
+        s = numpy.hstack((ob.angle, ob.track, ob.trackPos, ob.speedX,
+                                  ob.speedY, ob.speedZ, ob.wheelSpinVel / 100.0, ob.rpm))
         R = 0 
 
         while True:            
             # self.env.render()
+            self.steps += 1
 
             a = agent.act(s)
 
-            s_, r, done, info = self.env.step(a)
+            ob_, r, term, info = self.env.step(a)
+            
+            s_ = numpy.hstack((ob_.angle, ob_.track, ob_.trackPos, ob_.speedX,
+                                  ob_.speedY, ob_.speedZ, ob_.wheelSpinVel / 100.0, ob_.rpm))
+            s_ = s_.ravel()
+            if term == 1:
+                done = True
+            else:
+                done = False
 
             if done: # terminal state
                 s_ = None
@@ -218,7 +243,7 @@ class Environment:
                 break
 
         # print("Total reward:", R)
-            print("Action", a, "Reward", r)
+            print("Episode" , self.episodes , "Step", self.steps, "Action", a, "Reward", r)
 
 #-------------------- MAIN ----------------------------
 PROBLEM = 'CartPole-v0'
@@ -233,10 +258,10 @@ randomAgent = RandomAgent(actionCnt)
 try:
     while randomAgent.memory.isFull() == False:
         env.run(randomAgent)
-
+    
     agent.memory.samples = randomAgent.memory.samples
     randomAgent = None
-
+    
     while True:
         env.run(agent)
 finally:
