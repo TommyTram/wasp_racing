@@ -149,7 +149,7 @@ class TorcsEnv:
                                                       np.sin(obs['angle'])) - sp * np.abs(obs['trackPos'])
         reward = progress
 	#reward = -obs['curLapTime']
-	reward = obs['distRaced']
+	#reward = obs['distRaced']
 
         # collision detection
         if obs['damage'] - obs_pre['damage'] > 0:
