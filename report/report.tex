@@ -55,7 +55,7 @@ Hierarchical Reinforcement Learning (HRL) differs from traditional RL in a way t
 
 \subsubsection{Goals}
 
-A goal is simply a higher level action, such as \textit{overtake}, \textit{follow}, \textit{merge} in the AD context. Th
+A goal is simply a higher level action, such as \textit{overtake}, \textit{follow}, \textit{merge} in the AD context. 
 
 
 
@@ -66,9 +66,9 @@ In the standard RL setting our action-space is merely the steering angle $\theta
 
 \subsection{Termination conditions}
 
-We also have to take in mind the conditions that lead to the end of an episode. At the end of the episode we collect the rewards attained and update our models. However, if we do not have well defined termination conditions we might get stuck in simulation.
+We also have to take in mind the conditions that lead to the end of an episode. At the end of the episode we restart our experiment. If we do not have well-defined termination conditions we might get stuck in simulation.
 
-\subsection{RL setting (Maybe not needed?)}
+The current termination conditions we use are, if car takes damage (hits a wall), if enough time steps has elapsed (to avoid getting stuck).
 
 \subsection{HRL setting}
 
@@ -78,20 +78,35 @@ We can think of two kinds of rewards, one that is intristic and shown every time
 \[
 r_t = V_x \cos(\theta) - V_x\sin(\theta)-V_x|trackPos|
 \]
+scaled to approximately $[-1,1]$ for stability
 
 But we also have another reward that we denote as the $\textit{terminal}$ reward,
 
 \[
 R_t = -T
 \]
+
+As of now in the DQN-algorithm we are using the intristic reward $r_t$ which also means we can learn not only outside of the episode but also inside of the episode.
+
 \subsubsection{Decision maker}
-We assume a $\epsilon-$greedy decision maker, with random exploration parameter $\epsilon$.
+We assume a $\epsilon-$greedy decision maker, with random exploration parameter $\epsilon_t$. We tune this $\epsilon_t$ parameter adaptively, starting at $\epsilon_0 = 1.0$ and asymptotically approaching $\epsilon_\infty = 0.01$. This to force the agent to occasionally explore even for long horizons.
+
+\[
+	\epsilon_0 + (\epsilon_\infty - \epsilon_0) e^{-\lambda t}
+\]
+
 
 \subsubsection{Action-space}
-Our action-space $\mathcal{A}$ initially consists of three actions, namely, $\textit{left}, \textit{center}, \textit{right}$. These actions corresepond to the position in the track that we want to follow. The agent 
+Our action-space $\mathcal{A}$ initially consists of three actions, namely, $\textit{left}, \textit{center}, \textit{right}$. These actions corresepond to the position in the track that we want to follow. 
 
 \subsubsection{State-space}
+The state-space $\mathcal{S}$ consists of a $29\times1$ vector of features such as, current track position, angle to the track, sensors of opponents and so on.
 
+\subsubsection{Controller dynamics}
+
+\subsubsection{Training}
+
+We use experience replay and (hopefully) batch normalization. We update the weights after each observation $(s,a) \rightarrow (r,s',a')$ and store it in our memory buffer. At every training step we sample a subset of this buffer and use it for training.
 
 \section{Results}
 
