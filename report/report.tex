@@ -104,6 +104,20 @@ The state-space $\mathcal{S}$ consists of a $29\times1$ vector of features such 
 
 \subsubsection{Controller dynamics}
 
+\paragraph{Velocity controller}
+
+$v_{set}$ is our velocity setpoint. $x_a$ is our acceleration, $p_a$ is our P-parameter for the acceleration and $x_{v_x}$ is the current x-velocity
+
+\[
+	x_a = p_a (v_{set} - x_{v_x})
+\]
+
+If $x_a$ is negative, this gain is applied towards the brakes instead. Otherwise it is applied to the throttle.
+
+\paragraph{Driving controller}
+
+We have an offset denoted by $\delta$ that specifies the offset for the controller depending on the action selected. For ${\text{\{left,right,center}\}}$ these offsets are $\{-0.8, 0.0, 0.8\}$
+
 \subsubsection{Training}
 
 We use experience replay and (hopefully) batch normalization. We update the weights after each observation $(s,a) \rightarrow (r,s',a')$ and store it in our memory buffer. At every training step we sample a subset of this buffer and use it for training.
