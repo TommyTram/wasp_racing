@@ -88,13 +88,22 @@ Overall we think that the project schedule is delayed by about 3-4 weeks but we 
 	\end{center}
 \end{table}
 
+
 We propose the very same time plan as originally discussed, but without the competition. Perhaps the report deadlines have to be moved slightly.
 
-\section{Status}
+\section{Work plan}
+\subsection{Scope}
+Use reinforcement learning to optimize the lap time on a specific course in torcs, with no other vehicles present. Two approaches will be compared, using DQN and DDPG. We will implement the DQN algorithm, whereas the DDPG algorithm is already implemented.
+
+\subsection{Problem formulation}
+From the TORCS simulation use the sensor inputs and game state as a feature vector to feed to a DQN. 
+
+The DQN will use a set of discrete actions corresponding to a predefined path (eg., keep to the left of the road center, keep to the middle, or right). From this we use a standard PID control to decide  the steering angle (either momentaneous or a look-ahead offset).
 
 \subsection{Completed}
 
 \begin{itemize}
+	\item Defined the problem we want to solve
 	\item Getting familiar with the TORCS framework
 	\item Working with the existing DDPG solution
 	\item Setting up our own DQN model
