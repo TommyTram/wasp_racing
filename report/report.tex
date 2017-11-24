@@ -11,27 +11,28 @@
 
 \begin{document}
 
-\title{WASP RL racing}
+\title{WASP Reinforcement Learning project course \\
+	Final report}
 \author{
-	First Author\\
-	Department\\
-	school\\
-	email@edu
+	Ivo Batkovic\\
+	Zenuity\\
+	Chalmers\\
+	ivo.batkovic@zenuity.com
 	\and
-	Second Author\\
-	Department\\
-	school\\
-	email@edu
+	Hannes Eriksson\\
+	Zenuity\\
+	Chalmers\\
+	hannese@chalmers.se
 	\and
-	Third Author\\
-	Department\\
-	school\\
-	email@edu
+	Carl-Johan Hoel\\
+	Volvo\\
+	Chalmers\\
+	carl-johan.hoel@volvo.com
 	\and
-	Fourth Author\\
-	Department\\
-	school\\
-	email@edu
+	Tommy Tram\\
+	Zenuity\\
+	Chalmers\\
+	tommy.tram@zenuity.com
 }
 
 \maketitle
@@ -123,6 +124,24 @@ We have an offset denoted by $\delta$ that specifies the offset for the controll
 We use experience replay and (hopefully) batch normalization. We update the weights after each observation $(s,a) \rightarrow (r,s',a')$ and store it in our memory buffer. At every training step we sample a subset of this buffer and use it for training.
 
 \section{Results}
+
+\section{Extensions}
+
+\subsection{Continuous actions}
+
+If we consider a continuous lateral position offset instead of a discretized one we can learn how to position ourselves arbitrarily on the track. The step from a discrete representation to a continuous one would be trivial. Consider the current mapping, $\{a_1,a_2,a_3\} = \{-0.8, 0.0, 0.8\}$, we could instead say that our actions $\mathcal{A} \in [-0.8,0.8]$. Then we could have a linear mapping from action $a \rightarrow \text{offset}$. For the DQN this would mean that the final layer is not a classifier but instead a regressor.
+
+\subsection{Planning}
+
+This would require us to learn a transition model  $\mathbb{P}(s_{t+1}=s'|s_t=s,a_t=a)$. Perhaps one could consider a trivial model for the vehicle dynamics, such as the kinetic model of the car. The next state would then be easily calculated given the current position and the current velocity. However, for more complicated features such as the range finders, and the radial sensors this is not so trivial. So to do this well one would most likely have to learn the transition model rather than use the kinetic model as an approximation. A neural network could be used to learn this representation, having input neurons be $(s_t,a_t)$ and output neurons be $s_{t+1}$.
+
+\subsection{Reward shaping}
+
+Reward shaping would be interesting because we could then find a better reward function to use that would more closely match our true goal, minimizing the time it takes for the car to run a lap. Since we use an intristic reward that is received at every time step it is not certain that this reward function would and the terminal reward function would lead to the same policy $\pi$, in fact it is very unlikely. Using reward shaping we could instead try to find a better reward function.
+
+\subsection{MPC}
+
+We could think of an extension of the current controller that instead a MPC.
 
 \section{Conclusion}
 
