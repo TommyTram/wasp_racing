@@ -103,7 +103,7 @@ class Memory:   # stored as ( s, a, r, s_ )
         return len(self.samples) >= self.capacity
 
 #-------------------- AGENT ---------------------------
-MEMORY_CAPACITY = 10
+MEMORY_CAPACITY = 100000
 BATCH_SIZE = 64
 VALIDATION_FREQUENCY = 100000
 VALIDATION_STEPS = 10000
@@ -298,6 +298,9 @@ randomAgent = RandomAgent(actionCnt)
 currentIterator = 0
 prevIterator = 0
 
+experienceReplayFileName = 'experienceReplay.pkcl'
+QnetworkParametersFileName = 'QnetworkParameters.h5'
+
 # Train a new network from scratch
 trainFromScratch = False
 if trainFromScratch:
@@ -309,7 +312,7 @@ if trainFromScratch:
 
         # Assign the experience replay to the real agent and save the samples
         agent.memory.samples = randomAgent.memory.samples
-        f = open('experienceReplay.pckl', 'wb')
+        f = open(experienceReplayFileName, 'wb')
         pickle.dump(agent.memory.samples, f)
         f.close()
 
@@ -344,10 +347,10 @@ if trainFromScratch:
                 if (currentIterator-prevIterator) >= saveFrequency:
 
                     # Write the model weights
-                    agent.brain.model.save('QnetworkParameters.h5',overwrite=True)                
+                    agent.brain.model.save(QnetworkParametersFileName,overwrite=True)                
 
                     # Write the experience replay samples
-                    f = open('experienceReplay.pckl','wb')
+                    f = open(experienceReplayFileName,'wb')
                     pickle.dump([agent.memory.samples,env.steps],f);
                     f.close()
 
@@ -365,14 +368,14 @@ else:
     randomAgent = None
 
     # Read experience replay and set the environment steps to continue from same epsilon
-    f = open('experienceReplay.pckl','rb')
+    f = open(experienceReplayFileName,'rb')
     samples,nSteps = pickle.load(f)
     agent.memory.samples = samples
     env.steps = nSteps
     f.close()
     # Try to load the model
     try:
-        copyfile('QnetworkParameters.h5', 'QnetworkParametersTemporaryForReading.h5')
+        copyfile(QnetworkParametersFileName, 'QnetworkParametersTemporaryForReading.h5')
 
         agent.brain.model.load_weights('QnetworkParametersTemporaryForReading.h5')
         
@@ -409,10 +412,10 @@ else:
             if (currentIterator-prevIterator) >= saveFrequency:
 
                 # Write the model weights
-                agent.brain.model.save('QnetworkParameters.h5',overwrite=True)                
+                agent.brain.model.save(QnetworkParametersFileName,overwrite=True)                
                 
                 # Write the experience replay samples
-                f = open('experienceReplay.pckl','wb')
+                f = open(experienceReplayFileName,'wb')
                 pickle.dump([agent.memory.samples,env.steps],f);
                 f.close()
 
