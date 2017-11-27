@@ -306,7 +306,7 @@ if trainFromScratch:
         # Loop over the random agents actions so we get an initial experience replay
         while randomAgent.memory.isFull() == False:
             env.run(randomAgent)
-        
+
         # Assign the experience replay to the real agent and save the samples
         agent.memory.samples = randomAgent.memory.samples
         f = open('experienceReplay.pckl', 'wb')
@@ -345,7 +345,7 @@ if trainFromScratch:
 
                     # Write the model weights
                     agent.brain.model.save('QnetworkParameters.h5',overwrite=True)                
-                    
+
                     # Write the experience replay samples
                     f = open('experienceReplay.pckl','wb')
                     pickle.dump([agent.memory.samples,env.steps],f);
@@ -356,7 +356,9 @@ if trainFromScratch:
                     print('-------------------')
                     print('Saved model to disk')
                     print('-------------------')
-
+    finally:
+        print('Exiting')
+        
 # If not training new model, read it from files
 else:
     # Kill random agent
