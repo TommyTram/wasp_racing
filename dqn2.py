@@ -16,6 +16,7 @@ import tensorflow as tf
 
 from gym_torcs_dqn import TorcsEnv
 
+from datetime import datetime
 #----------
 HUBER_LOSS_DELTA = 1.0
 LEARNING_RATE = 0.00025
@@ -100,6 +101,9 @@ class Memory:   # stored as ( s, a, r, s_ )
 #-------------------- AGENT ---------------------------
 MEMORY_CAPACITY = 100000
 BATCH_SIZE = 64
+VALIDATION_FREQUENCY = 100000
+VALIDATION_STEPS = 10000
+MAX_STEPS_BEFORE_RESTART = 20000 #This should be less than max steps before torcs stops (20 laps)
 
 GAMMA = 0.99
 
@@ -203,6 +207,7 @@ class Environment:
         self.env = TorcsEnv(vision=False, throttle=False, gear_change=False)
         self.episodes = 0
         self.steps = 0
+        self.validationSteps = 0
 
     def run(self, agent):
         self.episodes += 1
@@ -213,8 +218,9 @@ class Environment:
         s = numpy.hstack((ob.angle, ob.track, ob.trackPos, ob.speedX,
                                   ob.speedY, ob.speedZ, ob.wheelSpinVel / 100.0, ob.rpm))
         R = 0 
-
-        while True:            
+        stepsAtEpisodeStart = self.steps
+        
+        while self.steps - stepsAtEpisodeStart < MAX_STEPS_BEFORE_RESTART:            
             # self.env.render()
             self.steps += 1
 
@@ -244,8 +250,39 @@ class Environment:
         # print("Total reward:", R)
             print("Episode" , self.episodes , "Step", self.steps, "Action", a, "Reward", r)
 
+    def runValidation(self, agent):
+        ob = self.env.reset()
+        s = numpy.hstack((ob.angle, ob.track, ob.trackPos, ob.speedX,
+                                  ob.speedY, ob.speedZ, ob.wheelSpinVel / 100.0, ob.rpm))
+        R = 0 
+        stepsAtEpisodeStart = self.validationSteps
+        while self.validationSteps - stepsAtEpisodeStart < MAX_STEPS_BEFORE_RESTART:            
+            self.validationSteps += 1
+            #a = agent.act(s)
+            a = numpy.argmax(agent.brain.predictOne(s)) #Epsilon = 0
+            ob_, r, term, info = self.env.step(a)
+            s_ = numpy.hstack((ob_.angle, ob_.track, ob_.trackPos, ob_.speedX,
+                                  ob_.speedY, ob_.speedZ, ob_.wheelSpinVel / 100.0, ob_.rpm))
+            if term == 1:
+                done = True
+            else:
+                done = False    
+            if self.validationSteps >= VALIDATION_STEPS:
+                done = True
+            if done: # terminal state
+                s_ = None
+            #agent.observe( (s, a, r, s_) )
+            #agent.replay()            
+            s = s_
+            R += r
+            if done:
+                break
+            print("Validation step", self.validationSteps, "Action", a, "Reward", r)
+        return R
+
 #-------------------- MAIN ----------------------------
 PROBLEM = 'CartPole-v0'
+LOGFILE = "validationLog" + str(datetime.now().strftime('%Y%m%d_%H%M%S'))
 env = Environment(PROBLEM)
 
 stateCnt  = 29#env.env.observation_space.shape[0]
@@ -261,7 +298,23 @@ try:
     agent.memory.samples = randomAgent.memory.samples
     randomAgent = None
     
+    validationRun = 1;
     while True:
-        env.run(agent)
+        if env.steps - MEMORY_CAPACITY > validationRun * VALIDATION_FREQUENCY:
+            print("Validation start")
+            validationRun+=1
+            validationReturn = 0;
+            env.validationSteps = 0
+            while env.validationSteps <= VALIDATION_STEPS:
+                R = env.runValidation(agent)
+                validationReturn += R
+            print("Validation stop")
+            print("Validation return ",validationReturn)
+            logOut = str(env.steps) + " " + str(validationReturn) + "\n"
+            f = open(LOGFILE, 'a')
+            f.write(logOut)
+            f.close()
+        else:
+            env.run(agent)
 finally:
     agent.brain.model.save("cartpole-dqn.h5")
