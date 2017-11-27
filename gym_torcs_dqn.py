@@ -26,6 +26,7 @@ class TorcsEnv:
         self.gear_change = gear_change
         self.acc = 0
         self.initial_run = True
+        self.distFromStart = 0
 
         ##print("launch torcs")
         os.system('pkill torcs')
@@ -149,7 +150,18 @@ class TorcsEnv:
         progress = sp * np.cos(obs['angle']) - np.abs(sp *
                                                       np.sin(obs['angle'])) - sp * np.abs(obs['trackPos'])
         progress = progress / 100 # scaling rewards to about -1,1
-        reward = progress
+        #reward = progress
+        
+        distFromStartNew = obs['distFromStart']
+        reward = (distFromStartNew - self.distFromStart)/5
+        if reward > 1:
+            reward = 1
+        if reward < 0:
+            reward = 0
+            
+        self.distFromStart = distFromStartNew
+        
+        
     #reward = -obs['curLapTime']
     #reward = obs['distRaced']
 
