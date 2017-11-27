@@ -119,6 +119,14 @@ If $x_a$ is negative, this gain is applied towards the brakes instead. Otherwise
 
 We have an offset denoted by $\delta$ that specifies the offset for the controller depending on the action selected. For ${\text{\{left,right,center}\}}$ these offsets are $\{-0.8, 0.0, 0.8\}$
 
+\subsubsection{Actor-Critic}
+
+To be able to manage a continuous action-space we move from a DQN-network that selects discrete actions to an actor-critic architecture. The actor network is $\pi_\theta$ and is a mapping from states $s$ to a distribution over actions $a \in \mathcal{A}$. So $a \sim \pi_\theta(a|s)$. $\theta$ are the parameters of our network. We also have a critic/value network $V_\phi^\pi$ that is a mapping from states $s$ and policy $\pi$ to a value $v \in \mathbb{R}$. The parameters of our critic network are $\phi$.
+We can then update our prediction $\hat{V}_\phi^\pi (s)= r + \gamma \hat{V}_\phi^\pi (s')$. We also calculate the advantage function $\hat{A}^\pi (s,a) = r(s,a) + \gamma \hat{V}_\phi^\pi (s') - \hat{V}_\phi^\pi (s).$
+We can then update our parameters $\theta$ according to the following;
+\[
+	\theta \leftarrow \theta + \alpha \nabla_\theta \log \pi_\theta (a|s) \hat{A}^\pi (s,a)
+\]
 \subsubsection{Training}
 
 We use experience replay and (hopefully) batch normalization. We update the weights after each observation $(s,a) \rightarrow (r,s',a')$ and store it in our memory buffer. At every training step we sample a subset of this buffer and use it for training.
