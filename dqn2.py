@@ -11,10 +11,14 @@
 
 import random, numpy, math, gym, sys
 from keras import backend as K
-
+from keras.models import model_from_json, Model, load_model
 import tensorflow as tf
 
+
 from gym_torcs_dqn import TorcsEnv
+from shutil import copyfile
+
+import pickle # to save the experience replay in a easy and quicky way
 
 #----------
 HUBER_LOSS_DELTA = 1.0
@@ -98,7 +102,7 @@ class Memory:   # stored as ( s, a, r, s_ )
         return len(self.samples) >= self.capacity
 
 #-------------------- AGENT ---------------------------
-MEMORY_CAPACITY = 100000
+MEMORY_CAPACITY = 10
 BATCH_SIZE = 64
 
 GAMMA = 0.99
@@ -254,14 +258,116 @@ actionCnt = 3#env.env.action_space.n
 agent = Agent(stateCnt, actionCnt)
 randomAgent = RandomAgent(actionCnt)
 
-try:
-    while randomAgent.memory.isFull() == False:
-        env.run(randomAgent)
-    
-    agent.memory.samples = randomAgent.memory.samples
+
+saveFrequency = 1000
+currentIterator = 0
+prevIterator = 0
+
+# Train a new network from scratch
+trainFromScratch = False
+if trainFromScratch:
+
+    try:
+        # Loop over the random agents actions so we get an initial experience replay
+        while randomAgent.memory.isFull() == False:
+            env.run(randomAgent)
+        
+        # Assign the experience replay to the real agent and save the samples
+        agent.memory.samples = randomAgent.memory.samples
+        f = open('experienceReplay.pckl', 'wb')
+        pickle.dump(agent.memory.samples, f)
+        f.close()
+
+        # Remove/kill the random agent
+        randomAgent = None
+
+        # Loop to train the agent
+        while True:
+            # Run a episode
+            env.run(agent)
+
+            # Update parameter for continuous saving
+            currentIterator = env.steps
+            print "Iterator", currentIterator - prevIterator
+            if (currentIterator-prevIterator) >= saveFrequency:
+
+                # Write the model weights
+                agent.brain.model.save('QnetworkParameters.h5',overwrite=True)                
+                
+                # Write the experience replay samples
+                f = open('experienceReplay.pckl','wb')
+                pickle.dump([agent.memory.samples,env.steps],f);
+                f.close()
+
+                # Reset counter
+                prevIterator = env.steps
+                print('-------------------')
+                print('Saved model to disk')
+                print('-------------------')
+
+    # When done write the model paramters and experience replay
+    finally:
+        agent.brain.model.save('QnetworkParameters.h5')
+        f = open('experienceReplay.pckl','wb')
+        pickle.dump([agent.memory.samples,env.steps],f);
+        f.close()
+# If not training new model, read it from files
+else:
+    # Kill random agent
     randomAgent = None
-    
+
+    # Read experience replay and set the environment steps to continue from same epsilon
+    f = open('experienceReplay.pckl','rb')
+    samples,nSteps = pickle.load(f)
+    agent.memory.samples = samples
+    env.steps = nSteps
+    f.close()
+    # Try to load the model
+    try:
+        copyfile('QnetworkParameters.h5', 'QnetworkParametersTemporaryForReading.h5')
+
+        agent.brain.model.load_weights('QnetworkParametersTemporaryForReading.h5')
+        
+
+        print("Loaded model successfully")
+    except:
+        print("Cannot find the weight")
+
+    # Loop to train the agent
     while True:
+        # Run a episode
         env.run(agent)
-finally:
-    agent.brain.model.save("cartpole-dqn.h5")
+
+        # Update parameter for continuous saving
+        currentIterator = env.steps
+        print "Iterator", currentIterator - prevIterator
+        if (currentIterator-prevIterator) >= saveFrequency:
+
+            # Write the model weights
+            agent.brain.model.save('QnetworkParameters.h5',overwrite=True)                
+            
+            # Write the experience replay samples
+            f = open('experienceReplay.pckl','wb')
+            pickle.dump([agent.memory.samples,env.steps],f);
+            f.close()
+
+            # Reset counter
+            prevIterator = env.steps
+            print('-------------------')
+            print('Saved model to disk')
+            print('-------------------')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
