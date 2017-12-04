@@ -87,6 +87,10 @@ But we also have another reward that we denote as the $\textit{terminal}$ reward
 R_t = -T
 \]
 
+We can also define a third reward function that measures \textit{progress}
+
+TODO write about it here
+
 As of now in the DQN-algorithm we are using the intristic reward $r_t$ which also means we can learn not only outside of the episode but also inside of the episode.
 
 \subsubsection{Decision maker}
@@ -121,12 +125,7 @@ We have an offset denoted by $\delta$ that specifies the offset for the controll
 
 \subsubsection{Actor-Critic}
 
-To be able to manage a continuous action-space we move from a DQN-network that selects discrete actions to an actor-critic architecture. The actor network is $\pi_\theta$ and is a mapping from states $s$ to a distribution over actions $a \in \mathcal{A}$. So $a \sim \pi_\theta(a|s)$. $\theta$ are the parameters of our network. We also have a critic/value network $V_\phi^\pi$ that is a mapping from states $s$ and policy $\pi$ to a value $v \in \mathbb{R}$. The parameters of our critic network are $\phi$.
-We can then update our prediction $\hat{V}_\phi^\pi (s)= r + \gamma \hat{V}_\phi^\pi (s')$. We also calculate the advantage function $\hat{A}^\pi (s,a) = r(s,a) + \gamma \hat{V}_\phi^\pi (s') - \hat{V}_\phi^\pi (s).$
-We can then update our parameters $\theta$ according to the following;
-\[
-	\theta \leftarrow \theta + \alpha \nabla_\theta \log \pi_\theta (a|s) \hat{A}^\pi (s,a)
-\]
+
 \subsubsection{Training}
 
 We use experience replay and (hopefully) batch normalization. We update the weights after each observation $(s,a) \rightarrow (r,s',a')$ and store it in our memory buffer. At every training step we sample a subset of this buffer and use it for training.
@@ -137,7 +136,7 @@ We use experience replay and (hopefully) batch normalization. We update the weig
 
 \subsection{Continuous actions}
 
-If we consider a continuous lateral position offset instead of a discretized one we can learn how to position ourselves arbitrarily on the track. The step from a discrete representation to a continuous one would be trivial. Consider the current mapping, $\{a_1,a_2,a_3\} = \{-0.8, 0.0, 0.8\}$, we could instead say that our actions $\mathcal{A} \in [-0.8,0.8]$. Then we could have a linear mapping from action $a \rightarrow \text{offset}$. For the DQN this would mean that the final layer is not a classifier but instead a regressor.
+If we consider a continuous lateral position offset instead of a discretized one we can learn how to position ourselves arbitrarily on the track. The step from a discrete representation to a continuous one would require a more suitable model. How to handle continuous actions in a DQN is not immediately trivial.  Consider the current mapping, $\{a_1,a_2,a_3\} = \{-0.8, 0.0, 0.8\}$, we could instead say that our actions $\mathcal{A} \in [-0.8,0.8]$. Then we could have a linear mapping from action $a \rightarrow \text{offset}$. The easiest way to do this would be to learn a policy network $\pi_\theta(a|s) = \mathbb{P}(a | s, \theta)$ to which we could apply a Gaussian policy.
 
 \subsection{Planning}
 
@@ -151,6 +150,16 @@ Reward shaping would be interesting because we could then find a better reward f
 
 We could think of an extension of the current controller that instead a MPC.
 
+\subsection{Actor-Critic}
+To be able to manage a continuous action-space we move from a DQN-network that selects discrete actions to an actor-critic architecture. The actor network is $\pi_\theta$ and is a mapping from states $s$ to a distribution over actions $a \in \mathcal{A}$. So $a \sim \pi_\theta(a|s)$. $\theta$ are the parameters of our network. We also have a critic/value network $V_\phi^\pi$ that is a mapping from states $s$ and policy $\pi$ to a value $v \in \mathbb{R}$. The parameters of our critic network are $\phi$.
+We can then update our prediction $\hat{V}_\phi^\pi (s)= r + \gamma \hat{V}_\phi^\pi (s')$. We also calculate the advantage function $\hat{A}^\pi (s,a) = r(s,a) + \gamma \hat{V}_\phi^\pi (s') - \hat{V}_\phi^\pi (s).$
+We can then update our parameters $\theta$ according to the following;
+\[
+\theta \leftarrow \theta + \alpha \nabla_\theta \log \pi_\theta (a|s) \hat{A}^\pi (s,a)
+\]
+
 \section{Conclusion}
+
+\section{What did we learn?}
 
 \end{document}
