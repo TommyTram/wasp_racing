@@ -234,12 +234,18 @@ class Environment:
                           ob.speedY, ob.speedZ, ob.wheelSpinVel / 100.0, ob.rpm))
         R = 0
         stepsAtEpisodeStart = self.steps
+        s0 = s
+        a0 = agent.act(s)
+        acumulated_r = 0
 
         while self.steps - stepsAtEpisodeStart < MAX_STEPS_BEFORE_RESTART:
             self.steps += 1
+            change_action = False
+            if ((self.steps - stepsAtEpisodeStart) % 10) == 1:
+                action = agent.act(s)
+                change_action = True
 
-            a = agent.act(s)
-
+            a = action
             ob_, r, term, info = self.env.step(a)
 
             s_ = numpy.hstack((ob_.angle, ob_.track, ob_.trackPos, ob_.speedX,
@@ -252,16 +258,24 @@ class Environment:
             if done:  # terminal state
                 s_ = None
 
-            agent.observe((s, a, r, s_))
-            agent.replay()
+            if change_action and self.steps - stepsAtEpisodeStart > 1:
+                agent.observe((s0, a0, acumulated_r, s_))
+                agent.replay()
+                acumulated_r = 0
+                s0 = s
+                a0 = a
+
+            else:
+                acumulated_r += r
 
             s = s_
             R += r
+            average_r = R / (self.steps - stepsAtEpisodeStart) / 10
             summary = tf.Summary(value=[
-                tf.Summary.Value(tag='Action', simple_value=a),
+                tf.Summary.Value(tag='Average Reward', simple_value=average_r),
                 tf.Summary.Value(tag='Reward', simple_value=R)])
 
-            self.fileWriter.add_summary(summary, global_step=self.steps)
+            self.fileWriter.add_summary(summary, global_step=self.episodes)
             if done:
                 break
 

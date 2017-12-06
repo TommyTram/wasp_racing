@@ -84,10 +84,10 @@ class TorcsEnv:
 #                 client.R.d['accel'] += .01
 #             else:
 #                 client.R.d['accel'] -= .01
-# 
+#
 #             if client.S.d['speedX'] < 10:
 #                 client.R.d['accel'] += 1 / (client.S.d['speedX'] + .1)
-# 
+#
 #             # Traction Control System
 #             if ((client.S.d['wheelSpinVel'][2] + client.S.d['wheelSpinVel'][3]) -
 #                     (client.S.d['wheelSpinVel'][0] + client.S.d['wheelSpinVel'][1]) > 5):
@@ -97,7 +97,7 @@ class TorcsEnv:
 #             action_torcs['brake'] = this_action['brake']
 
         setSpeed = 90
-        pAcc = 0.1
+        pAcc = 0.05
         acc = pAcc * (setSpeed - self.observation.speedX)
         if acc > 0:
             throttle = acc
@@ -149,19 +149,18 @@ class TorcsEnv:
 
         progress = sp * np.cos(obs['angle']) - np.abs(sp *
                                                       np.sin(obs['angle'])) - sp * np.abs(obs['trackPos'])
-        progress = progress / 100 # scaling rewards to about -1,1
+        progress = progress / 100  # scaling rewards to about -1,1
         #reward = progress
-        
+
         distFromStartNew = obs['distFromStart']
-        reward = (distFromStartNew - self.distFromStart)/5
+        reward = (distFromStartNew - self.distFromStart) / 5
         if reward > 1:
             reward = 1
         if reward < 0:
             reward = 0
-            
+
         self.distFromStart = distFromStartNew
-        
-        
+
     #reward = -obs['curLapTime']
     #reward = obs['distRaced']
 
@@ -182,7 +181,8 @@ class TorcsEnv:
         #        episode_terminate = True
         #        client.R.d['meta'] = True
 
-        if np.cos(obs['angle']) < 0 or np.abs(obs['trackPos']) > 1.2:  # Episode is terminated if the agent runs backward
+        # Episode is terminated if the agent runs backward
+        if np.cos(obs['angle']) < 0 or np.abs(obs['trackPos']) > 1.2:
             episode_terminate = True
             client.R.d['meta'] = True
 
@@ -250,14 +250,15 @@ class TorcsEnv:
             delta = -0.8
         elif (u == 2):
             delta = 0.8
-        
+
         lateralSetPoint = delta
-        pLateralOffset = -1
+        pLateralOffset = -0.3
         pAngleOffset = 3
-        steeringAngle = pLateralOffset * (self.observation.trackPos + lateralSetPoint) + pAngleOffset * self.observation.angle
+        steeringAngle = pLateralOffset * \
+            (self.observation.trackPos + lateralSetPoint) + pAngleOffset * self.observation.angle
         torcs_action = {'steer': steeringAngle}
 
-        #Ivo's old code        
+        # Ivo's old code
         #steering = self.observation.angle * 10 / PI
         #steering -= (self.observation.trackPos - delta) * .10
         #torcs_action = {'steer': steering}
