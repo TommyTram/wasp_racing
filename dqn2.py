@@ -237,11 +237,12 @@ class Environment:
         s0 = s
         a0 = agent.act(s)
         acumulated_r = 0
+        decisionFrequency = 20
 
         while self.steps - stepsAtEpisodeStart < MAX_STEPS_BEFORE_RESTART:
             self.steps += 1
             change_action = False
-            if ((self.steps - stepsAtEpisodeStart) % 10) == 1:
+            if ((self.steps - stepsAtEpisodeStart) % decisionFrequency) == 1:
                 action = agent.act(s)
                 change_action = True
 
@@ -270,7 +271,7 @@ class Environment:
 
             s = s_
             R += r
-            average_r = R / (self.steps - stepsAtEpisodeStart) / 10
+            average_r = R / (self.steps - stepsAtEpisodeStart) / decisionFrequency
             summary = tf.Summary(value=[
                 tf.Summary.Value(tag='Average Reward', simple_value=average_r),
                 tf.Summary.Value(tag='Reward', simple_value=R)])
@@ -278,8 +279,9 @@ class Environment:
             self.fileWriter.add_summary(summary, global_step=self.episodes)
             if done:
                 break
-
-            print("Episode", self.episodes, "Step", self.steps, "Action", a, "Reward", r)
+            
+            if ((self.steps - stepsAtEpisodeStart) % decisionFrequency) == 1:
+                print("Episode", self.episodes, "Step", self.steps, "Action", a)#, "Reward", r)
 
     def runValidation(self, agent):
         ob = self.env.reset()
