@@ -40,6 +40,7 @@
 \includegraphics[width=12cm]{img/torcs.png} % also works with logo.pdf
 \clearpage
 \tableofcontents
+\thispagestyle{empty}
 \clearpage
 \section{Introduction}
 \setcounter{page}{1}
@@ -73,13 +74,24 @@ The current termination conditions we use are, if car takes damage (hits a wall)
 
 \subsection{HRL setting}
 
+TODO, we can think of using options as long-term actions instead of just specifying a lateral offset that the controller should try to follow. This would make the policy more strategical and decrease the jerkiness.
+We can extend our current DQN algorithm to instead use options by
+
 \subsubsection{Reward function}
 
-We can think of two kinds of rewards, one that is intristic and shown every timestep. That is,  
+We can think of three kinds of rewards, two that are intristic and shown every timestep. That is,  
 \[
 r_t = V_x \cos(\theta) - V_x\sin(\theta)-V_x|trackPos|
 \]
 scaled to approximately $[-1,1]$ for stability
+
+We can also define another reward function that measures \textit{progress}
+
+\[
+r_t = \frac{\text{distanceFromStart} - r_{t-1}}{5}
+\]
+
+We also truncate this to $\mathcal{R} \in [0, 1]$. The reasoning for using a reward like this one that measures progress since the previous time step is so the agent can learn how to take curves well and also to finish the lap.
 
 But we also have another reward that we denote as the $\textit{terminal}$ reward,
 
@@ -87,11 +99,7 @@ But we also have another reward that we denote as the $\textit{terminal}$ reward
 R_t = -T
 \]
 
-We can also define a third reward function that measures \textit{progress}
 
-TODO write about it here
-
-As of now in the DQN-algorithm we are using the intristic reward $r_t$ which also means we can learn not only outside of the episode but also inside of the episode.
 
 \subsubsection{Decision maker}
 We assume a $\epsilon-$greedy decision maker, with random exploration parameter $\epsilon_t$. We tune this $\epsilon_t$ parameter adaptively, starting at $\epsilon_0 = 1.0$ and asymptotically approaching $\epsilon_\infty = 0.01$. This to force the agent to occasionally explore even for long horizons.
@@ -99,7 +107,6 @@ We assume a $\epsilon-$greedy decision maker, with random exploration parameter 
 \[
 	\epsilon_0 + (\epsilon_\infty - \epsilon_0) e^{-\lambda t}
 \]
-
 
 \subsubsection{Action-space}
 Our action-space $\mathcal{A}$ initially consists of three actions, namely, $\textit{left}, \textit{center}, \textit{right}$. These actions corresepond to the position in the track that we want to follow. 
@@ -123,12 +130,22 @@ If $x_a$ is negative, this gain is applied towards the brakes instead. Otherwise
 
 We have an offset denoted by $\delta$ that specifies the offset for the controller depending on the action selected. For ${\text{\{left,right,center}\}}$ these offsets are $\{-0.8, 0.0, 0.8\}$
 
-\subsubsection{Actor-Critic}
+\subsubsection{Deep Q-Network}
+
+Our network architecture consists of four layers, one input layer with $29$ neurons, one fully connected hidden layer with $512$ neurons, one fully connected hidden layer with $64$ neurons and one output layer with $3$ neurons. The activation function between the input and hidden layer is \text{ReLU}, the activation function between hidden and hidden layer is \text{ReLU} and the activation function between the last hidden layer and the output layer is \text{Linear}.
+We are using the \textit{Huber} loss as cost function and we are using the stochastic gradient descent algorithm RMSprop as the optimization function.
 
 
-\subsubsection{Training}
+\paragraph{Training}
 
 We use experience replay and (hopefully) batch normalization. We update the weights after each observation $(s,a) \rightarrow (r,s',a')$ and store it in our memory buffer. At every training step we sample a subset of this buffer and use it for training.
+
+\paragraph{Experience replay}
+
+As the agent runs in the environment we save a buffer of tuples $(s_t, a_t, r_t, s'_t)$. Batches of these memories are then used to train our Q-Network. The update is as follows;
+\[
+	Q(s_t, a_t) \leftarrow  (1-\alpha)Q(s_t, a_t) + \alpha(r + \gamma \max_a Q(s_{t+1}, a_t))
+\]
 
 \section{Results}
 
