@@ -134,7 +134,7 @@ class Agent:
         self.memory = Memory(MEMORY_CAPACITY)
 
     def act(self, s):
-        if False:#random.random() < self.epsilon:
+        if False:  # random.random() < self.epsilon:
             return random.randint(0, self.actionCnt - 1)
         else:
             return numpy.argmax(self.brain.predictOne(s))
@@ -239,7 +239,7 @@ class Environment:
         acumulated_r = 0
         decisionFrequency = 20
 
-        while True:#self.steps - stepsAtEpisodeStart < MAX_STEPS_BEFORE_RESTART:
+        while True:  # self.steps - stepsAtEpisodeStart < MAX_STEPS_BEFORE_RESTART:
 
             maxSteps = False
             if self.steps - stepsAtEpisodeStart > MAX_STEPS_BEFORE_RESTART:
@@ -252,7 +252,7 @@ class Environment:
                 change_action = True
 
             a = action
-            ob_, r, term, info = self.env.step(a,maxSteps)
+            ob_, r, term, info = self.env.step(a, maxSteps)
 
             s_ = numpy.hstack((ob_.angle, ob_.track, ob_.trackPos, ob_.speedX,
                                ob_.speedY, ob_.speedZ, ob_.wheelSpinVel / 100.0, ob_.rpm))
@@ -281,12 +281,13 @@ class Environment:
                 tf.Summary.Value(tag='Average Reward', simple_value=average_r),
                 tf.Summary.Value(tag='Reward', simple_value=R)])
 
-            self.fileWriter.add_summary(summary, global_step=self.episodes)
+            # self.fileWriter.add_summary(summary, global_step=self.episodes)
             if done:
+                self.fileWriter.add_summary(summary, global_step=self.episodes)
                 break
-            
+
             if ((self.steps - stepsAtEpisodeStart) % decisionFrequency) == 1:
-                print("Episode", self.episodes, "Step", self.steps, "Action", a)#, "Reward", r)
+                print("Episode", self.episodes, "Step", self.steps, "Action", a)  # , "Reward", R)
 
         return R
 
@@ -338,7 +339,7 @@ experienceReplayFileName = 'experienceReplayDecisionFreq20MaxSteps1000.pkcl'
 QnetworkParametersFileName = 'QnetworkParametersDecisionFreq20MaxSteps1000.h5'
 
 # Train a new network from scratch
-trainFromScratch = False
+trainFromScratch = True
 if trainFromScratch:
 
     try:
@@ -370,7 +371,7 @@ if trainFromScratch:
         # Loop to train the agent
         validationRun = 1
         while True:
-            if False:#env.steps - MEMORY_CAPACITY > validationRun * VALIDATION_FREQUENCY:
+            if False:  # env.steps - MEMORY_CAPACITY > validationRun * VALIDATION_FREQUENCY:
                 print("Validation start")
                 validationRun += 1
                 validationReturn = 0
@@ -392,7 +393,7 @@ if trainFromScratch:
                 # Update parameter for continuous saving
                 currentIterator = env.steps
 
-                if env.episodes % 10 == 0:#(currentIterator - prevIterator) >= saveFrequency:
+                if env.episodes % 10 == 0:  # (currentIterator - prevIterator) >= saveFrequency:
 
                     # Write the model weights
                     agent.brain.model.save(QnetworkParametersFileName, overwrite=True)
@@ -408,7 +409,7 @@ if trainFromScratch:
                     print('Saved model to disk')
                     print('-------------------')
 
-                logOut = str(env.steps) + " " + str(env.episodes) + " " +  str(totReward) + "\n"
+                logOut = str(env.steps) + " " + str(env.episodes) + " " + str(totReward) + "\n"
                 f = open('rewardFile', 'a')
                 f.write(logOut)
                 f.close()
@@ -441,7 +442,7 @@ else:
     # Loop to train the agent
     validationRun = 1
     while True:
-        if False:#env.steps - MEMORY_CAPACITY > validationRun * VALIDATION_FREQUENCY:
+        if False:  # env.steps - MEMORY_CAPACITY > validationRun * VALIDATION_FREQUENCY:
             print("Validation start")
             validationRun += 1
             validationReturn = 0
@@ -459,11 +460,11 @@ else:
 
             # Run a episode
             totReward = env.run(agent)
-            print('Total reward',totReward)
+            print('Total reward', totReward)
             # Update parameter for continuous saving
             currentIterator = env.steps
 
-            if False:#(currentIterator - prevIterator) >= saveFrequency:
+            if False:  # (currentIterator - prevIterator) >= saveFrequency:
 
                 # Write the model weights
                 agent.brain.model.save(QnetworkParametersFileName, overwrite=True)

@@ -182,7 +182,7 @@ class TorcsEnv:
         #        client.R.d['meta'] = True
 
         # Episode is terminated if the agent runs backward
-        if np.cos(obs['angle']) < 0 or np.abs(obs['trackPos']) > 1.2:
+        if np.cos(obs['angle']) < 0 or np.abs(obs['trackPos']) > 1.7:
             episode_terminate = True
             client.R.d['meta'] = True
 
