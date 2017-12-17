@@ -117,7 +117,7 @@ GAMMA = 0.99
 
 MAX_EPSILON = 1
 MIN_EPSILON = 0.01
-LAMBDA = 0.001      # speed of decay
+LAMBDA = 0.005      # speed of decay
 
 UPDATE_TARGET_FREQUENCY = 1000
 
@@ -129,7 +129,7 @@ class Agent:
     def __init__(self, stateCnt, actionCnt):
         self.stateCnt = stateCnt
         self.actionCnt = actionCnt
-
+        self.episodes = 0
         self.brain = Brain(stateCnt, actionCnt)
         self.memory = Memory(MEMORY_CAPACITY)
 
@@ -160,7 +160,8 @@ class Agent:
 
         # slowly decrease Epsilon based on our eperience
         self.steps += 1
-        self.epsilon = MIN_EPSILON + (MAX_EPSILON - MIN_EPSILON) * math.exp(-LAMBDA * self.steps)
+        self.epsilon = MIN_EPSILON + (MAX_EPSILON - MIN_EPSILON) * math.exp(-LAMBDA * self.episodes)
+        print("Epsilon",self.epsilon)
 
     def replay(self):
         batch = self.memory.sample(BATCH_SIZE)
@@ -389,7 +390,7 @@ if trainFromScratch:
 
                 # Run a episode
                 totReward = env.run(agent)
-
+                agent.episodes += 1
                 # Update parameter for continuous saving
                 currentIterator = env.steps
 

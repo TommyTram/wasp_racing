@@ -64,7 +64,7 @@ class TorcsEnv:
             low = np.array([0., -np.inf, -np.inf, -np.inf, 0., -np.inf, 0., -np.inf, 0])
             self.observation_space = spaces.Box(low=low, high=high)
 
-    def step(self, u):
+    def step(self, u,maxSteps):
        # print("Step")
         # convert thisAction to the actual torcs actionstr
         client = self.client
@@ -147,8 +147,8 @@ class TorcsEnv:
         damage = np.array(obs['damage'])
         rpm = np.array(obs['rpm'])
 
-        progress = sp * np.cos(obs['angle']) - np.abs(sp *
-                                                      np.sin(obs['angle'])) - sp * np.abs(obs['trackPos'])
+        progress = sp * np.cos(obs['angle'])# - np.abs(sp *
+                                            #          np.sin(obs['angle'])) - sp * np.abs(obs['trackPos'])
         progress = progress / 100  # scaling rewards to about -1,1
         #reward = progress
 
@@ -186,7 +186,7 @@ class TorcsEnv:
             episode_terminate = True
             client.R.d['meta'] = True
 
-        if client.R.d['meta'] is True:  # Send a reset signal
+        if (client.R.d['meta'] is True) or maxSteps == True:  # Send a reset signal
             self.initial_run = False
             client.respond_to_server()
 
@@ -208,7 +208,7 @@ class TorcsEnv:
                 self.reset_torcs()
                 print("### TORCS is RELAUNCHED ###")
 
-        os.system('sh incTime.sh')
+        
         # Modify here if you use multiple tracks in the environment
         self.client = snakeoil3.Client(p=3101, vision=self.vision)  # Open new UDP in vtorcs
         self.client.MAX_STEPS = np.inf
@@ -222,6 +222,8 @@ class TorcsEnv:
         self.last_u = None
 
         self.initial_reset = False
+
+        os.system('sh incTime.sh')
         return self.get_obs()
 
     def end(self):
