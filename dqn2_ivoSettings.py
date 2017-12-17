@@ -279,10 +279,12 @@ class Environment:
             s = s_
             R += r
             average_r = R / (self.steps - stepsAtEpisodeStart) / decisionFrequency
-            max_accumulated_reward = numpy.maximum(average_r, max_accumulated_reward)
+            max_accumulated_reward = numpy.maximum(acumulated_r, max_accumulated_reward)
             summary = tf.Summary(value=[
-                tf.Summary.Value(tag='Max Average Reward', simple_value=max_accumulated_reward),
-                tf.Summary.Value(tag='Reward', simple_value=R)])
+                tf.Summary.Value(tag='Reward', simple_value=R),
+                tf.Summary.Value(tag='Average Reward', simple_value=average_r),
+                tf.Summary.Value(tag='Max Accumulated Reward', simple_value=max_accumulated_reward)
+            ])
 
             # self.fileWriter.add_summary(summary, global_step=self.episodes)
             if done:
