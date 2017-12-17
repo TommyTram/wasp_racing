@@ -161,7 +161,7 @@ class Agent:
         # slowly decrease Epsilon based on our eperience
         self.steps += 1
         self.epsilon = MIN_EPSILON + (MAX_EPSILON - MIN_EPSILON) * math.exp(-LAMBDA * self.episodes)
-        print("Epsilon",self.epsilon)
+        print("Epsilon", self.epsilon)
 
     def replay(self):
         batch = self.memory.sample(BATCH_SIZE)
@@ -239,6 +239,7 @@ class Environment:
         a0 = agent.act(s)
         acumulated_r = 0
         decisionFrequency = 20
+        max_accumulated_reward = 0
 
         while True:  # self.steps - stepsAtEpisodeStart < MAX_STEPS_BEFORE_RESTART:
 
@@ -278,8 +279,9 @@ class Environment:
             s = s_
             R += r
             average_r = R / (self.steps - stepsAtEpisodeStart) / decisionFrequency
+            max_accumulated_reward = numpy.maximum(average_r, max_accumulated_reward)
             summary = tf.Summary(value=[
-                tf.Summary.Value(tag='Average Reward', simple_value=average_r),
+                tf.Summary.Value(tag='Max Average Reward', simple_value=max_accumulated_reward),
                 tf.Summary.Value(tag='Reward', simple_value=R)])
 
             # self.fileWriter.add_summary(summary, global_step=self.episodes)
